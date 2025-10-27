@@ -5,6 +5,6 @@ This repository contains the starter code for many different projects. They are 
 
 
 
-settings/keys in github
+Settings/keys in github
 name:Emmanuel laptop
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHJQ10fHnCWqBj/EZ2Jec2e9So2jqj2qh/7I4kcLpkOj badument@gmail.com
