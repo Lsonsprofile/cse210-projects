@@ -5,10 +5,9 @@
 // 2. Dual-format save: .txt (original) + .csv (Excel-ready with proper escaping)
 // 3. Auto CSV detection on load with header skipping
 // 4. Graceful error handling with specific messages
+// 5. Display file path on load and save
 
 using System;
-using System.Collections.Generic;
-using System.IO;
 
 public class Journal
 {
@@ -58,10 +57,17 @@ public class Journal
     // Continues prompting until a valid, writable path is provided
     // Saves in BOTH .txt (original format) and .csv (Excel-ready)
     // Uses ~|~ for .txt to avoid text conflicts
+    // Now shows FULL PATH so you can find the file easily
     public void SaveToFile(string filename)
     {
         string fileToSave = filename.Trim();
+
+        // If no extension, default to .csv (user wants Excel file)
+        if (!Path.HasExtension(fileToSave))
+            fileToSave += ".csv";
+
         string csvFile = Path.ChangeExtension(fileToSave, ".csv");
+        string txtFile = Path.ChangeExtension(fileToSave, ".txt");
 
         while (true)
         {
@@ -69,22 +75,15 @@ public class Journal
             {
                 Console.Write("Filename cannot be empty. Enter a valid filename to save: ");
                 fileToSave = Console.ReadLine().Trim();
+                if (!Path.HasExtension(fileToSave)) fileToSave += ".csv";
                 csvFile = Path.ChangeExtension(fileToSave, ".csv");
+                txtFile = Path.ChangeExtension(fileToSave, ".txt");
                 continue;
             }
 
             try
             {
-                // Save original .txt format
-                using (StreamWriter txtFile = new StreamWriter(fileToSave))
-                {
-                    foreach (Entry entry in _entries)
-                    {
-                        txtFile.WriteLine($"{entry._date}~|~{entry._promptText}~|~{entry._entryText}");
-                    }
-                }
-
-                // Save CSV format for Excel
+                // Save CSV first (this is the main Excel file)
                 using (StreamWriter csv = new StreamWriter(csvFile))
                 {
                     csv.WriteLine("Date,Prompt,Response");
@@ -96,26 +95,47 @@ public class Journal
                     }
                 }
 
-                Console.WriteLine($"Saved: {fileToSave} (original) + {csvFile} (Excel CSV)\n");
+                // Save .txt as backup
+                using (StreamWriter txt = new StreamWriter(txtFile))
+                {
+                    foreach (Entry entry in _entries)
+                    {
+                        txt.WriteLine($"{entry._date}~|~{entry._promptText}~|~{entry._entryText}");
+                    }
+                }
+
+                // Show FULL PATH so you know exactly where files are saved
+                string fullCsvPath = Path.GetFullPath(csvFile);
+                string fullTxtPath = Path.GetFullPath(txtFile);
+
+                Console.WriteLine($"Saved successfully!");
+                Console.WriteLine($"   Excel CSV: {fullCsvPath}");
+                Console.WriteLine($"   Backup TXT: {fullTxtPath}\n");
                 break;
             }
             catch (UnauthorizedAccessException)
             {
                 Console.Write($"Access denied to '{fileToSave}'. Enter different filename: ");
                 fileToSave = Console.ReadLine().Trim();
+                if (!Path.HasExtension(fileToSave)) fileToSave += ".csv";
                 csvFile = Path.ChangeExtension(fileToSave, ".csv");
+                txtFile = Path.ChangeExtension(fileToSave, ".txt");
             }
             catch (DirectoryNotFoundException)
             {
                 Console.Write($"Folder not found for '{fileToSave}'. Enter valid path: ");
                 fileToSave = Console.ReadLine().Trim();
+                if (!Path.HasExtension(fileToSave)) fileToSave += ".csv";
                 csvFile = Path.ChangeExtension(fileToSave, ".csv");
+                txtFile = Path.ChangeExtension(fileToSave, ".txt");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                Console.Write($"Cannot save to '{fileToSave}'. Enter valid filename: ");
+                Console.Write($"Error: {ex.Message}. Try again: ");
                 fileToSave = Console.ReadLine().Trim();
+                if (!Path.HasExtension(fileToSave)) fileToSave += ".csv";
                 csvFile = Path.ChangeExtension(fileToSave, ".csv");
+                txtFile = Path.ChangeExtension(fileToSave, ".txt");
             }
         }
     }
