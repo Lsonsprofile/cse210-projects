@@ -8,8 +8,11 @@ public class Activity
     private string _date;
     private int _lengthInMinutes;
 
-    // This is the key line that lets derived classes access the minutes safely
-    protected int LengthInMinutes => _lengthInMinutes;
+    // Full property syntax instead of expression-bodied
+    protected int LengthInMinutes
+    {
+        get { return _lengthInMinutes; }
+    }
 
     public Activity(string date, int lengthInMinutes)
     {
@@ -17,9 +20,21 @@ public class Activity
         _lengthInMinutes = lengthInMinutes;
     }
 
-    public virtual double GetDistance() => 0;
-    public virtual double GetSpeed() => 0;
-    public virtual double GetPace() => 0;
+    // Expanded methods instead of => shorthand
+    public virtual double GetDistance()
+    {
+        return 0;
+    }
+
+    public virtual double GetSpeed()
+    {
+        return 0;
+    }
+
+    public virtual double GetPace()
+    {
+        return 0;
+    }
 
     public virtual string GetSummary()
     {
